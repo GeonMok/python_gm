@@ -11,7 +11,7 @@ demanded_major_selective = 54 # 심화전공 기준
 current_total = 0
 current_major_essential = 0
 current_major_selective = 0 
-
+score = 0
 
 root = Tk()
 root.title("GeonMok GUI") #창 제목 설정
@@ -98,10 +98,10 @@ def addcmd():
     global current_major_essential
     global current_major_selective
     global current_total
+    global score
 
     major_info  = cmb_major.get()
     idx = opt_major.index(major_info)
-    score = grade_dict[cmb_grade.get()] # score value like 4.5, 4.0 ... 
     print(cmb_semester.get(), course.get(1.0, END)) # 학기 내 중복 과목은 없다고 가정
     credit_taken = int(cmb_credit.get())
     if idx == 0 : # 전공필수
@@ -109,11 +109,13 @@ def addcmd():
     if idx == 1 : # 전공선택
         current_major_selective += credit_taken
     current_total += credit_taken
+    score += credit_taken*grade_dict[cmb_grade.get()] # score value like 4.5, 4.0 ... 
 
 def calcmd():
     global current_major_essential
     global current_major_selective
     global current_total
+    global score
 
     p_var_M.set(current_major_essential)
     p_var_m.set(current_major_selective)
@@ -122,6 +124,8 @@ def calcmd():
     pbar_T.update()
     pbar_m.update()
     pbar_M.update()
+
+    print("Credit Score(total): %.2f" %(score/current_total))
 
 
 # 실행 프레임
