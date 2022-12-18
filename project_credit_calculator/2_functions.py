@@ -1,10 +1,12 @@
 import tkinter.ttk as ttk
+import tkinter.messagebox as msgbox
 from tkinter import *
+
 
 #학점 변수 생성
 demanded_total = 130    # 컴퓨터학과 기준
 demanded_major_essential = 18
-demanded_major_selective = 24
+demanded_major_selective = 54 # 심화전공 기준
 
 current_total = 0
 current_major_essential = 0
@@ -34,9 +36,9 @@ frame_option = LabelFrame(root, text = "옵션")
 frame_option.pack(padx = 5, pady= 5, ipady=5) 
 
 # 1. 과목명 (텍스트)
-txt = Text(frame_option, width = 10, height=1) #텍스트 위젯
-txt.pack(side = "left", padx = 6, pady= 6)
-txt.insert(END, "과목명")
+course = Text(frame_option, width = 10, height=1) #텍스트 위젯
+course.pack(side = "left", padx = 6, pady= 6)
+course.insert(END, "과목명")
 
 # 2. 전공 여부 옵션
 lbl_major = Label(frame_option, text = "전공 여부", width = 9)
@@ -51,7 +53,7 @@ cmb_major.pack(side = "left", padx = 6, pady= 6)
 lbl_credit = Label(frame_option, text = "학점", width = 9)
 lbl_credit.pack(side = "left", padx = 6, pady= 6)
 
-opt_credit = ["1", "2", "3", "4 이상"]
+opt_credit = ["1", "2", "3"]
 cmb_credit = ttk.Combobox(frame_option, state = "readonly", values = opt_credit, width = 10)
 cmb_credit.current(0)
 cmb_credit.pack(side = "left", padx = 6, pady= 6)
@@ -60,7 +62,9 @@ cmb_credit.pack(side = "left", padx = 6, pady= 6)
 lbl_grade = Label(frame_option, text = "성적", width = 9)
 lbl_grade.pack(side = "left", padx = 6, pady= 6)
 
-opt_grade = ["A+", "A", "B+", "B", "C+", "C", "D+", "D", "F", "P", "NP"]
+score_per_credit = [4.5,4.0,3.5,3.0,2.5,2.0,1.5,1.0]
+opt_grade = ["A+", "A", "B+", "B", "C+", "C", "D+", "D"] #Pass Fail?
+grade_dict = dict(zip(opt_grade, score_per_credit))
 cmb_grade = ttk.Combobox(frame_option, state = "readonly", values = opt_grade, width = 10)
 cmb_grade.current(0)
 cmb_grade.pack(side = "left", padx = 6, pady= 6)
@@ -70,24 +74,55 @@ frame_major_essential = LabelFrame(root, text = "진행 상황(전공 필수)")
 frame_major_essential.pack(fill="x", padx = 5, pady= 5, ipady=5)
 
 p_var_M = DoubleVar()
-pbar = ttk.Progressbar(frame_major_essential, maximum = 100, variable=p_var_M)
-pbar.pack(fill="x", padx = 5, pady= 5)
+pbar_M = ttk.Progressbar(frame_major_essential, maximum = demanded_major_essential, variable=p_var_M)
+pbar_M.pack(fill="x", padx = 5, pady= 5)
 
 
 frame_major_selective = LabelFrame(root, text = "진행 상황(전공 선택)")
 frame_major_selective.pack(fill="x", padx = 5, pady= 5, ipady=5)
 
 p_var_m = DoubleVar()
-pbar = ttk.Progressbar(frame_major_selective, maximum = 100, variable=p_var_m)
-pbar.pack(fill="x", padx = 5, pady= 5)
+pbar_m = ttk.Progressbar(frame_major_selective, maximum = demanded_major_selective, variable=p_var_m)
+pbar_m.pack(fill="x", padx = 5, pady= 5)
 
 
 frame_total = LabelFrame(root, text = "진행 상황(Total)")
 frame_total.pack(fill="x", padx = 5, pady= 5, ipady=5)
 
 p_var_T = DoubleVar()
-pbar = ttk.Progressbar(frame_total, maximum = 100, variable=p_var_T)
-pbar.pack(fill="x", padx = 5, pady= 5)
+pbar_T = ttk.Progressbar(frame_total, maximum = demanded_total, variable=p_var_T)
+pbar_T.pack(fill="x", padx = 5, pady= 5)
+
+#필요 함수
+def addcmd():
+    global current_major_essential
+    global current_major_selective
+    global current_total
+
+    major_info  = cmb_major.get()
+    idx = opt_major.index(major_info)
+    score = grade_dict[cmb_grade.get()] # score value like 4.5, 4.0 ... 
+    print(cmb_semester.get(), course.get(1.0, END)) # 학기 내 중복 과목은 없다고 가정
+    credit_taken = int(cmb_credit.get())
+    if idx == 0 : # 전공필수
+        current_major_essential += credit_taken
+    if idx == 1 : # 전공선택
+        current_major_selective += credit_taken
+    current_total += credit_taken
+
+def calcmd():
+    global current_major_essential
+    global current_major_selective
+    global current_total
+
+    p_var_M.set(current_major_essential)
+    p_var_m.set(current_major_selective)
+    p_var_T.set(current_total)
+
+    pbar_T.update()
+    pbar_m.update()
+    pbar_M.update()
+
 
 # 실행 프레임
 frame_run = Frame(root)
@@ -95,9 +130,9 @@ frame_run.pack(fill = "x", padx = 5, pady= 5)
 
 btn_close = Button(frame_run, padx = 5, pady = 5, text = "닫기", width = 12, command = root.quit)
 btn_close.pack(side = "right", padx = 5, pady= 5)
-btn_start = Button(frame_run, padx = 5, pady = 5, text = "계산", width = 12)
+btn_start = Button(frame_run, padx = 5, pady = 5, text = "계산", width = 12, command=calcmd)
 btn_start.pack(side = "right", padx = 5, pady= 5)
-btn_start = Button(frame_run, padx = 5, pady = 5, text = "추가", width = 12)
+btn_start = Button(frame_run, padx = 5, pady = 5, text = "추가", width = 12, command=addcmd)
 btn_start.pack(side = "right", padx = 5, pady= 5)
 
 
